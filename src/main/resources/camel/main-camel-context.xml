@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+
+    <context:property-placeholder location="classpath:application.properties" ignore-resource-not-found="true"/>
+
+    <bean id="utilsBean" class="com.voicecomm.sixbalancer.CamelUtilsBean"/>
+
+    <bean id="mqTestBean" class="com.voicecomm.sixbalancer.MqTestBean"/>
+
+    <bean id="sabreIxMqConnectionFactory" class="com.ibm.mq.jms.MQXAConnectionFactory">
+        <property name="hostName" value="${sabreix_mq_ip}"/>
+        <property name="port" value="${sabreix_mq_port}"/>
+        <property name="queueManager" value="${sabreix_mq_manager}"/>
+        <property name="channel" value="${sabreix_mq_channel}"/>
+        <property name="transportType" value="1"/>
+        <property name="clientReconnectTimeout" value="3600"/>
+        <property name="clientReconnectOptions">
+            <util:constant static-field="com.ibm.msg.client.wmq.common.CommonConstants.WMQ_CLIENT_RECONNECT"/>
+        </property>
+        <!-- This parameter is fixed and compulsory to work with pure MQI java libraries -->
+    </bean>
+
+    <bean id="sabreIxMq" class="org.apache.camel.component.jms.JmsComponent">
+        <property name="connectionFactory" ref="sabreIxMqConnectionFactory"/>
+        <property name="transacted" value="true"/>
+        <property name="username" value="${sabreix_mq_username}"/>
+        <property name="password" value="${sabreix_mq_password}"/>
+        <property name="headerFilterStrategy" ref="sabreIxHeaderFilterStrategy"/>
+        <property name="acknowledgementModeName" value="AUTO_ACKNOWLEDGE"/>
+    </bean>
+
+    <bean id="sabreIxHeaderFilterStrategy" class="com.voicecomm.sixbalancer.process.mq.SabreIxHeaderFilterStrategy"/>
+
+    <bean id="noErrorHandler" class="org.apache.camel.builder.NoErrorHandlerBuilder"/>
+
+    <camelContext id="SampleCamel" xmlns="http://camel.apache.org/schema/spring">
+
+        <propertyPlaceholder id="app_properties" location="classpath:application.properties"/>
+
+        <endpoint id="sabreIXSourceMessagesQueue"
+                  uri="sabreIxMq:queue:{{sabreix_mq_queuename}}?concurrentConsumers=10&amp;asyncConsumer=true&amp;disableReplyTo=true&amp;acknowledgementModeName=SESSION_TRANSACTED"/>
+        <endpoint id="sabreIXDestinationMessagesQueue" uri="sabreIxMq:queue:{{sabreix_mq_queuename}}?concurrentConsumers=1&amp;disableReplyTo=true&amp;acknowledgementModeName=SESSION_TRANSACTED"/>
+
+        <endpoint id="sabrePassengersXsdValidator" uri="validator:{{sabreix_passengers_xsd}}"/>
+        <endpoint id="sabreNotificationXsdValidator" uri="validator:{{sabreix_voice_notification_xsd}}"/>
+
+        <rest>
+            <get uri="/mqconsole">
+                <to uri="direct:consoleRef"/>
+            </get>
+            <post uri="/push">
+                <!--to uri="direct:push_mq"/-->
+                <to uri="direct:handleNewSixMessage"/>
+            </post>
+        </rest>
+
+        <route>
+            <from uri="direct:saveResultToDb"/>
+            <doTry>
+                <bean ref="utilsBean" method="replacePrepareBodyForDb"/>
+                <choice>
+                    <when>
+                        <simple>${in.header.IX_MESSAGE_TYPE} == 'VOICE_COMM_NOTIFICATION'</simple>
+                        <setBody>
+                            <simple>
+                                INSERT INTO SIX_VOICE_NOTIFICATIONS(MESSAGE,TYPE,STATUS,VALIDATIONSTATUS,VALIDATIONERROR,UPDATED,CREATED)
+                                VALUES('${body}', :?IX_MESSAGE_TYPE, :?IX_STATUS,:?VALIDATION_STATUS,:?VALIDATION_ERROR,NOW(),NOW())
+                            </simple>
+                        </setBody>
+                    </when>
+                    <otherwise>
+                        <setBody>
+                            <simple>
+                                INSERT INTO SABRE_IX_MESSAGES_REPO(MESSAGE,TYPE,STATUS,VALIDATIONSTATUS,VALIDATIONERROR,UPDATED,CREATED)
+                                VALUES('${body}', :?IX_MESSAGE_TYPE, :?IX_STATUS,:?VALIDATION_STATUS,:?VALIDATION_ERROR,NOW(),NOW())
+                            </simple>
+                        </setBody>
+                    </otherwise>
+                </choice>
+
+                <to uri="jdbc:postgresDataSource?useHeadersAsParameters=true"/>
+                <doCatch>
+                    <exception>java.lang.Exception</exception>
+                    <bean ref="utilsBean" method="systemOut(${exception.message})"/>
+                </doCatch>
+            </doTry>
+        </route>
+
+        <route autoStartup="true">
+            <from uri="ref:sabreIXSourceMessagesQueue"/>
+            <multicast>
+                <!--<to uri="ref:destinationMqBoost"/>-->
+                <to uri="direct:handleNewSixMessage"/>
+            </multicast>
+        </route>
+
+        <route>
+            <from uri="direct:handleNewSixMessage"/>
+            <to uri="direct:handleMqMessages"/>
+            <to uri="direct:validation"/>
+            <to uri="direct:saveResultToDb"/>
+        </route>
+
+        <route>
+            <from uri="direct:handleMqMessages"/>
+            <doTry>
+                <choice>
+                    <when>
+                        <xpath>//cepMessage//header//message='VoicePlatform'</xpath>
+                        <setHeader name="IX_MESSAGE_TYPE">
+                            <simple>PASSENGERS_LIST</simple>
+                        </setHeader>
+                        <to uri="direct:passengersList"/>
+                    </when>
+                    <when>
+                        <xpath>//cepMessage//header//message='VoiceComNotification'</xpath>
+                        <setHeader name="IX_MESSAGE_TYPE">
+                            <simple>VOICE_COMM_NOTIFICATION</simple>
+                        </setHeader>
+                        <to uri="direct:booking"/>
+                    </when>
+                    <otherwise>
+                        <setHeader name="IX_MESSAGE_TYPE">
+                            <simple>UNKNOWN</simple>
+                        </setHeader>
+                        <bean ref="utilsBean" method="systemOut('*****Unknown message type*****')"/>
+                    </otherwise>
+                </choice>
+                <setHeader name="IX_STATUS">
+                    <simple>NEW</simple>
+                </setHeader>
+                <doCatch>
+                    <exception>java.lang.Exception</exception>
+                    <bean ref="utilsBean" method="systemOut(${exception.message})"/>
+                    <setHeader name="IX_STATUS">
+                        <simple>FAILURE</simple>
+                    </setHeader>
+                    <setHeader name="IX_MESSAGE_TYPE">
+                        <simple>UNKNOWN</simple>
+                    </setHeader>
+                    <setHeader name="PROCESS_ERROR">
+                        <simple>${exception.message}</simple>
+                    </setHeader>
+                </doCatch>
+            </doTry>
+        </route>
+
+        <route errorHandlerRef="noErrorHandler">
+            <from uri="direct:booking"/>
+            <bean ref="utilsBean" method="systemOut('BOOKING NOTIFICATION')"/>
+        </route>
+
+        <route errorHandlerRef="noErrorHandler">
+            <from uri="direct:passengersList"/>
+            <bean ref="utilsBean" method="systemOut('PASSENGERS LIST')"/>
+        </route>
+
+        <route>
+            <from uri="direct:validation"/>
+            <to uri="direct:defineHeaderParams"/>
+            <filter>
+                <simple resultType="java.lang.Boolean">{{sabreix_enable_xsd_validation}} == 'true'</simple>
+                <doTry>
+                    <choice>
+                        <when>
+                            <simple>${in.header.IX_MESSAGE_TYPE} == 'PASSENGERS_LIST'</simple>
+                            <to uri="ref:sabrePassengersXsdValidator"/>
+                        </when>
+                        <when>
+                            <simple>${in.header.IX_MESSAGE_TYPE} == 'VOICE_COMM_NOTIFICATION'</simple>
+                            <to uri="ref:sabreNotificationXsdValidator"/>
+                        </when>
+                    </choice>
+                    <setHeader name="VALIDATION_STATUS">
+                        <simple>SUCCESS</simple>
+                    </setHeader>
+                    <bean ref="utilsBean" method="systemOut('[Message is correct!]')"/>
+                    <doCatch>
+                        <exception>java.lang.Throwable</exception>
+                        <bean ref="utilsBean" method="systemOut(${exception.message})"/>
+                        <!--                        <to uri="ref:destinationTrash"/>-->
+                        <setHeader name="VALIDATION_STATUS">
+                            <simple>FAILURE</simple>
+                        </setHeader>
+                        <setHeader name="VALIDATION_ERROR">
+                            <simple>${exception.message}</simple>
+                        </setHeader>
+                    </doCatch>
+                </doTry>
+            </filter>
+            <bean ref="utilsBean" method="systemOut(VALIDATION IS ENABLED = {{sabreix_enable_xsd_validation}})"/>
+        </route>
+
+        <route>
+            <from uri="direct:defineHeaderParams"/>
+            <setHeader name="VALIDATION_STATUS">
+                <simple></simple>
+            </setHeader>
+            <setHeader name="VALIDATION_ERROR">
+                <simple></simple>
+            </setHeader>
+        </route>
+
+    </camelContext>
+</beans>

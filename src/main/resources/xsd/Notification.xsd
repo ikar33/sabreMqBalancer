@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSpy v2011 rel. 2 (http://www.altova.com) by TeaM DJiNN (TeaM DJiNN) -->
+<xs:schema xmlns:bookings="http://www.sabre.com/asx/booking" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="cepMessage">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="header">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="message" type="xs:string"/>
+							<xs:element name="dateSent" type="xs:string"/>
+							<xs:element name="eventId" type="xs:string"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="content">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="bookings">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="count" type="xs:unsignedByte"/>
+										<xs:element name="booking">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="bookingDate" type="xs:string"/>
+													<xs:element name="rloc" type="xs:string"/>
+													<xs:element name="lastUpdateDateTime" type="xs:string"/>
+													<xs:element name="GdsInHouseIdentification" type="xs:string"/>
+													<xs:element name="CreatingIataCode" type="xs:string"/>
+													<xs:element name="CreatingBookingOffice" type="xs:string"/>
+													<xs:element name="CreatingPseudoCityCode" type="xs:string"/>
+													<xs:element name="PosCountry" type="xs:string"/>
+													<xs:element name="PosCity" type="xs:string"/>
+													<xs:element name="GdsCode" type="xs:string"/>
+													<xs:element name="IATA_Notification_Email" type="xs:string" minOccurs="0"/>
+													<xs:element name="IATA_Notification_Language" type="xs:string" minOccurs="0"/>
+													<xs:element name="IATA_Notification_Phone" type="xs:string" minOccurs="0"/>
+													<xs:element name="IATA_Notification_PhoneType" type="xs:string" minOccurs="0"/>
+													<xs:element name="Notification_Agent_Phone" type="xs:string" minOccurs="0"/>
+													<xs:element name="Notification_Agent_PhoneType" type="xs:string" minOccurs="0"/>
+													<xs:element name="IATA_Notification_Reject" type="xs:string" minOccurs="0"/>
+													<xs:element name="ServiceLines">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="ServiceLine" minOccurs="0" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:sequence>
+																			<xs:element name="CrsId" type="xs:unsignedByte"/>
+																			<xs:element name="ServiceLineTypeCode" type="xs:string" minOccurs="0"/>
+																			<xs:element name="SecondaryType" type="xs:string"/>
+																			<xs:element name="FreeText" type="xs:string"/>
+																		</xs:sequence>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="nameCount" type="xs:unsignedByte"/>
+													<xs:element name="bookingNames">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="bookingName" minOccurs="0" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:sequence>
+																			<xs:element name="firstName" type="xs:string"/>
+																			<xs:element name="fqtLevel" type="xs:unsignedByte"/>
+																			<xs:element name="fqtNumber" type="xs:string"/>
+																			<xs:element name="fqtProgram" type="xs:string"/>
+																			<xs:element name="lastName" type="xs:string"/>
+																			<xs:element name="passengerType" type="xs:unsignedByte"/>
+																			<xs:element name="title" type="xs:string"/>
+																			<xs:element name="IATA_Notification_Email" type="xs:string" minOccurs="0"/>
+																			<xs:element name="IATA_Notification_Language" type="xs:string" minOccurs="0"/>
+																			<xs:element name="IATA_Notification_Phone" type="xs:string" minOccurs="0"/>
+																			<xs:element name="IATA_Notification_PhoneType" type="xs:string" minOccurs="0"/>
+																			<xs:element name="IATA_Notification_Reject" type="xs:string" minOccurs="0"/>
+																			<xs:element name="ServiceLines">
+																				<xs:complexType>
+																					<xs:sequence>
+																						<xs:element name="ServiceLine" minOccurs="0" maxOccurs="unbounded">
+																							<xs:complexType>
+																								<xs:sequence>
+																									<xs:element name="ServiceLineId" type="xs:unsignedLong"/>
+																									<xs:element name="ServiceLineTypeCode" type="xs:string" minOccurs="0"/>
+																									<xs:element name="SecondaryType" type="xs:string"/>
+																									<xs:element name="FreeText" type="xs:string"/>
+																								</xs:sequence>
+																							</xs:complexType>
+																						</xs:element>
+																					</xs:sequence>
+																				</xs:complexType>
+																			</xs:element>
+																			<xs:element name="CancelledBookingNameItems" minOccurs="0">
+																				<xs:complexType>
+																					<xs:sequence>
+																						<xs:element name="bookingNameItem" minOccurs="0" maxOccurs="unbounded">
+																							<xs:complexType>
+																								<xs:sequence>
+																									<xs:element name="aircraftType" type="xs:string"/>
+																									<xs:element name="LastUpdateInCADS" type="xs:string"/>
+																									<xs:element name="FlightId" type="xs:string"/>
+																									<xs:element name="ChangeId" type="xs:string"/>
+																									<xs:element name="arrivalDateTime" type="xs:string"/>
+																									<xs:element name="cabinCode" type="xs:string"/>
+																									<xs:element name="commercialBookingClass" type="xs:string"/>
+																									<xs:element name="commercialFlightNumber" type="xs:string"/>
+																									<xs:element name="departureDate" type="xs:string"/>
+																									<xs:element name="destination" type="xs:string"/>
+																									<xs:element name="destinationCity" type="xs:string"/>
+																									<xs:element name="destinationCountry" type="xs:string"/>
+																									<xs:element name="operatingCarrier" type="xs:string"/>
+																									<xs:element name="operatingFlightNumber" type="xs:string"/>
+																									<xs:sequence minOccurs="0" maxOccurs="1">
+																										<xs:element name="ModificationStatus" nillable="false">
+																											<xs:simpleType>
+																												<xs:restriction base="xs:string">
+																												<xs:minLength value="1"/>
+																											 	</xs:restriction>
+																										 	</xs:simpleType>
+																										</xs:element>
+																										<xs:element name="AutomaticModification"  nillable="false" >
+																											<xs:simpleType>
+																												<xs:restriction base="xs:string">
+																												<xs:minLength value="1"/>
+																											 	</xs:restriction>
+																										 	</xs:simpleType>
+																										</xs:element>
+																									</xs:sequence>
+																									<xs:element name="MarriedSegment" type="xs:string"/>
+																									<xs:element name="CrsSegStatus" type="xs:string"/>
+																									<xs:element name="ItemStatus" type="xs:unsignedByte"/>
+																									<xs:element name="origin" type="xs:string"/>
+																									<xs:element name="originCity" type="xs:string"/>
+																									<xs:element name="originCountry" type="xs:string"/>
+																									<xs:element name="DateItemAdded" type="xs:string" minOccurs="0"/>
+																									<xs:element name="DateItemConfirmed" type="xs:string" minOccurs="0"/>
+																								</xs:sequence>
+																							</xs:complexType>
+																						</xs:element>
+																					</xs:sequence>
+																				</xs:complexType>
+																			</xs:element>
+																			<xs:element name="ConfirmedBookingNameItems" minOccurs="0">
+																				<xs:complexType>
+																					<xs:sequence>
+																						<xs:element name="bookingNameItem" minOccurs="0" maxOccurs="unbounded">
+																							<xs:complexType>
+																								<xs:sequence>
+																									<xs:element name="IATA_Notification_Email" type="xs:string"/>
+																									<xs:element name="IATA_Notification_Language" type="xs:string"/>
+																									<xs:element name="IATA_Notification_Phone" type="xs:string"/>
+																									<xs:element name="IATA_Notification_PhoneType" type="xs:string"/>
+																									<xs:element name="IATA_Notification_Reject" type="xs:string"/>
+																									<xs:element name="aircraftType" type="xs:string"/>
+																									<xs:element name="LastUpdateInCADS" type="xs:string"/>
+																									<xs:element name="FlightId" type="xs:string"/>
+																									<xs:element name="ChangeId" type="xs:string"/>
+																									<xs:element name="arrivalDateTime" type="xs:string"/>
+																									<xs:element name="cabinCode" type="xs:string"/>
+																									<xs:element name="commercialBookingClass" type="xs:string"/>
+																									<xs:element name="commercialFlightNumber" type="xs:string"/>
+																									<xs:element name="departureDate" type="xs:string"/>
+																									<xs:element name="destination" type="xs:string"/>
+																									<xs:element name="destinationCity" type="xs:string"/>
+																									<xs:element name="destinationCountry" type="xs:string"/>
+																									<xs:element name="operatingCarrier" type="xs:string"/>
+																									<xs:element name="operatingFlightNumber" type="xs:string"/>
+																									<xs:element name="MarriedSegment" type="xs:string"/>
+																									<xs:element name="CrsSegStatus" type="xs:string"/>
+																									<xs:element name="ItemStatus" type="xs:unsignedByte"/>
+																									<xs:element name="TransactionType" type="xs:string"/>
+																									<xs:element name="origin" type="xs:string"/>
+																									<xs:element name="originCity" type="xs:string"/>
+																									<xs:element name="originCountry" type="xs:string"/>
+																									<xs:element name="DateItemAdded" type="xs:string" minOccurs="0"/>
+																									<xs:element name="DateItemConfirmed" type="xs:string" minOccurs="0"/>
+																									<xs:element name="ServiceLines" minOccurs="0">
+																										<xs:complexType>
+																											<xs:sequence>
+																												<xs:element name="ServiceLine" minOccurs="0" maxOccurs="unbounded">
+																													<xs:complexType>
+																														<xs:sequence>
+																															<xs:element name="ServiceLineId" type="xs:unsignedLong"/>
+																															<xs:element name="ServiceLineTypeCode" type="xs:string" minOccurs="0"/>
+																															<xs:element name="SecondaryType" type="xs:string"/>
+																															<xs:element name="FreeText" type="xs:string"/>
+																														</xs:sequence>
+																													</xs:complexType>
+																												</xs:element>
+																											</xs:sequence>
+																										</xs:complexType>
+																									</xs:element>
+																								</xs:sequence>
+																							</xs:complexType>
+																						</xs:element>
+																					</xs:sequence>
+																				</xs:complexType>
+																			</xs:element>
+																		</xs:sequence>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

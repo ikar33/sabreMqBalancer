@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+
+    <route id="console_route">
+        <from uri="direct:consoleRef"/>
+        <to uri="bean:testBean" />
+    <setBody>
+        <simple>Hello World</simple>
+    </setBody>
+    </route>
+
+</routes>
